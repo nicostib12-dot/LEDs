@@ -49,7 +49,7 @@ __Ludata_bank3 0 0 ABS 0
 main_code 7FC0 7FFF CODE 7FC0 0
 resetVec 7FBC 7FBF CODE 7FBC 0
 %locals
-build/default/debug/l.o
+build/default/production/l.o
 l.asm
 17 7FBC 0 CODE 0
 l.asm

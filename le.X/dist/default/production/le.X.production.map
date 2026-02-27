@@ -4,11 +4,11 @@ Linker command line:
 
 -W-3 \
   --edf=C:\Program Files\Microchip\xc8\v3.10\pic\dat\20250813170317_en.msgs \
-  -cs -h+dist/default/debug\le.X.debug.sym \
-  --cmf=dist/default/debug\le.X.debug.cmf -z -Q18F4550 \
-  -oC:\Users\david\AppData\Local\Temp\xcAsqo8.0\driver_tmp_3.o \
+  -cs -h+dist/default/production\le.X.production.sym \
+  --cmf=dist/default/production\le.X.production.cmf -z -Q18F4550 \
+  -oC:\Users\david\AppData\Local\Temp\xcAs8d4.0\driver_tmp_3.o \
   --fixupoverflow=error -ver=XC8 PIC(R) Assembler --fixupoverflow=lstwarn \
-  -Mdist/default/debug/le.X.debug.map -E1 -ACODE=00h-07FFFh \
+  -Mdist/default/production/le.X.production.map -E1 -ACODE=00h-07FFFh \
   -ACONST=00h-07FFFh -ASMALLCONST=0800h-08FFhx120 \
   -AMEDIUMCONST=0800h-07FFFh -ACOMRAM=00h-05Fh -AABS1=00h-07FFh \
   -ABIGRAM=00h-07FFh -ARAM=060h-0FFh,0100h-01FFhx7 -ABANK0=060h-0FFh \
@@ -16,7 +16,7 @@ Linker command line:
   -ABANK4=0400h-04FFh -ABANK5=0500h-05FFh -ABANK6=0600h-06FFh \
   -ABANK7=0700h-07FFh -ASFR=0F60h-0FFFh -ABIGSFR=0F60h-0FFFh \
   -AIDLOC=0200000h-0200007h -AEEDATA=0F00000h-0F000FFh \
-  build/default/debug/l.o 
+  build/default/production/l.o 
 
 Object code version is 3.11
 
@@ -25,7 +25,7 @@ Machine type is 18F4550
 
 
                 Name                               Link     Load   Length Selector   Space Scale
-build/default/debug/l.o
+build/default/production/l.o
                 config                           300000   300000        E        0       4
                 main_code                          7FC0     7FC0       40     3FE0       0
                 resetVec                           7FBC     7FBC        4     3FDE       0

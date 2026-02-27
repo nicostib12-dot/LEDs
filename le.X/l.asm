@@ -30,46 +30,44 @@ MOVWF OSCCON
 MOVLW   0b10000111
 MOVWF   T0CON
 Loop:
-    BTG     LATB, 0     ; Alternar el estado del LED en RB0 (si está encendido, lo apaga y viceversa)
-    CALL    Retardo_1s  ; Llamar a la rutina de retardo de 1 segundo
-    GOTO    Loop        ; Repetir el proceso de parpadeo en bucle infinito
+    BSF     LATB,0
+    CALL    retraso_1s
 
-    ;===============================================
-    ; Subrutina de Retardo de 1 Segundo (Aprox.)
-    ;===============================================
-Retardo_1s:
+    BCF     LATB,0
+    CALL    retraso_2s
+
+    GOTO    Loop
+
+;=========================
+; 1 segundo
+;=========================
+
+retraso_1s:
+
     MOVLW   0xE1
     MOVWF   TMR0H
     MOVLW   0x6B
     MOVWF   TMR0L
-LoopExterno:
-    MOVLW   250         ; Cargar el valor 250 en el registro W (contador interno)
-    MOVWF   ContadorInterno  ; Guardar el valor en la variable ContadorInterno
+    BCF     INTCON,2
 
-LoopInterno:
-    NOP                 ; No hacer nada (consume un ciclo de instrucción)
-    NOP                 ; No hacer nada (consume otro ciclo)
-    NOP                 ; No hacer nada (consume otro ciclo)
-    
-    DECFSZ  ContadorInterno, F  ; Decrementar ContadorInterno, si es cero, salta la siguiente instrucción
-    GOTO    LoopInterno         ; Si no es cero, repetir el bucle interno
+Esperar1:
+    BTFSS   INTCON,2
+    GOTO    Esperar1
 
-    DECFSZ  ContadorExterno, F  ; Decrementar ContadorExterno, si es cero, salta la siguiente instrucción
-    GOTO    LoopExterno         ; Si no es cero, repetir el bucle externo
+    RETURN
 
-    RETURN              ; Retornar al programa principal después del retardo
+; 2 segundos
+ retraso_2s:
 
-    ;===============================================
-    ; Definición de Variables
-    ;===============================================
+    MOVLW   0xC2
+    MOVWF   TMR0H
+    MOVLW   0xF7
+    MOVWF   TMR0L
 
-    PSECT udata  ; Sección de datos sin inicializar (variables en RAM)
-ContadorExterno:   DS 1   ; Reserva 1 byte de memoria para el contador externo
-ContadorInterno:   DS 1   ; Reserva 1 byte de memoria para el contador interno
+    BCF     INTCON,2
 
-    END            ; Fin del código
-
-
-
-
-
+Esperar2:
+    BTFSS   INTCON,2
+    GOTO    Esperar2
+     RETURN
+END
