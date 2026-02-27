@@ -5464,7 +5464,7 @@ CONFIG PBADEN = OFF ; PORTB inicia como digital
 ;============================
 PSECT udata_acs ; Seccion de datos en Acces bank
 SEGUNDOS: DS 1 ; variable encangarda de contar los segundos
-ESTADO_LED: DS 1 ; 0 = OFF / 1 = ON
+
 
 ;============================
 ; CÓDIGO PRINCIPAL
@@ -5487,7 +5487,7 @@ _main:
     BCF LATB, 0, A ; Inicia apagado el led
 
     CLRF SEGUNDOS, A ; inicia en 0 la variable "SEGUNDOS"
-    CLRF ESTADO_LED, A ; Led inicia apagado (0)
+
 
     ;-------------------------
     ; Configuración Timer0
@@ -5544,9 +5544,9 @@ ESPERA:
     ;-------------------------
 
     ; Si LED apagado
-    MOVF ESTADO_LED, W, A
-    BTFSS STATUS, 2 ; ¿Es 0?
-    GOTO LED_ENCENDIDO ; Si no es cero = LED encendido
+    BTFSC LATB, 0, A ; LED esta encendido?
+    GOTO LED_ENCENDIDO ; Si bit = 1 (ON)
+    GOTO LED_APAGADO ; S bit = 0 (OFF)
 
 ;---------------------------------------------------------
 ; LED ACTUALMENTE APAGADO
@@ -5560,8 +5560,6 @@ LED_APAGADO:
 
     BSF LATB, 0, A ; Encender LED
     CLRF SEGUNDOS, A ; Reiniciar contador
-    MOVLW 1
-    MOVWF ESTADO_LED, A ; Cambiar estado a encendido
     GOTO LOOP
 
 ;---------------------------------------------------------
@@ -5576,7 +5574,6 @@ LED_ENCENDIDO:
 
     BCF LATB, 0, A ; Apagar LED
     CLRF SEGUNDOS, A ; Reiniciar contador
-    CLRF ESTADO_LED, A ; Cambiar estado a apagado
     GOTO LOOP
 
 END
