@@ -27,7 +27,8 @@ Inicio:
     CLRF    LATB        ; Apagar todos los pines de PORTB (LED apagado inicialmente)
     MOVLW 0x72
 MOVWF OSCCON
-
+MOVLW   0b10000111
+MOVWF   T0CON
 Loop:
     BTG     LATB, 0     ; Alternar el estado del LED en RB0 (si está encendido, lo apaga y viceversa)
     CALL    Retardo_1s  ; Llamar a la rutina de retardo de 1 segundo
@@ -36,11 +37,11 @@ Loop:
     ;===============================================
     ; Subrutina de Retardo de 1 Segundo (Aprox.)
     ;===============================================
-
 Retardo_1s:
-    MOVLW   25          ; Cargar el valor 25 en el registro W (contador externo)
-    MOVWF   ContadorExterno  ; Guardar el valor en la variable ContadorExterno
-
+    MOVLW   0xE1
+    MOVWF   TMR0H
+    MOVLW   0x6B
+    MOVWF   TMR0L
 LoopExterno:
     MOVLW   250         ; Cargar el valor 250 en el registro W (contador interno)
     MOVWF   ContadorInterno  ; Guardar el valor en la variable ContadorInterno

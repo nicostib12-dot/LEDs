@@ -6,7 +6,7 @@ Linker command line:
   --edf=C:\Program Files\Microchip\xc8\v3.10\pic\dat\20250813170317_en.msgs \
   -cs -h+dist/default/debug\le.X.debug.sym \
   --cmf=dist/default/debug\le.X.debug.cmf -z -Q18F4550 \
-  -oC:\Users\david\AppData\Local\Temp\xcAse9k.0\driver_tmp_3.o \
+  -oC:\Users\david\AppData\Local\Temp\xcAstgw.0\driver_tmp_3.o \
   --fixupoverflow=error -ver=XC8 PIC(R) Assembler --fixupoverflow=lstwarn \
   -Mdist/default/debug/le.X.debug.map -E1 -ACODE=00h-07FFFh \
   -ACONST=00h-07FFFh -ASMALLCONST=0800h-08FFhx120 \
@@ -27,14 +27,14 @@ Machine type is 18F4550
                 Name                               Link     Load   Length Selector   Space Scale
 build/default/debug/l.o
                 config                           300000   300000        E        0       4
-                main_code                          7FD2     7FD2       2E     3FE9       0
-                resetVec                           7FCE     7FCE        4     3FE7       0
+                main_code                          7FCA     7FCA       36     3FE5       0
+                resetVec                           7FC6     7FC6        4     3FE3       0
                 udata                                60       60        2       60       1
 
 TOTAL           Name                               Link     Load   Length     Space
         CLASS   CODE           
-                main_code                          7FD2     7FD2       2E         0
-                resetVec                           7FCE     7FCE        4         0
+                main_code                          7FCA     7FCA       36         0
+                resetVec                           7FC6     7FC6        4         0
 
         CLASS   CONST          
 
@@ -83,8 +83,8 @@ TOTAL           Name                               Link     Load   Length     Sp
 SEGMENTS        Name                           Load    Length   Top    Selector   Space  Class
 
                 udata                          000060  000002  000062        60       1  RAM     
-                resetVec                       007FCE  000004  007FD2      3FE7       0  CODE    
-                main_code                      007FD2  00002E  008000      3FE9       0  CODE    
+                resetVec                       007FC6  000004  007FCA      3FE3       0  CODE    
+                main_code                      007FCA  000036  008000      3FE5       0  CODE    
 
 
 UNUSED ADDRESS RANGES
@@ -100,15 +100,15 @@ UNUSED ADDRESS RANGES
         BANK7            000700-0007FF              100
         BIGRAM           000000-0007FF              800
         BIGSFR           000F60-000FFF               A0
-        CODE             000000-007FCD             7FCE
+        CODE             000000-007FC5             7FC6
         COMRAM           000000-00005F               60
-        CONST            000000-007FCD             7FCE
+        CONST            000000-007FC5             7FC6
         EEDATA           F00000-F000FF              100
         IDLOC            200000-200007                8
-        MEDIUMCONST      000800-007FCD             77CE
+        MEDIUMCONST      000800-007FC5             77C6
         RAM              000062-0007FF              100
         SFR              000F60-000FFF               A0
-        SMALLCONST       000800-007FCD              100
+        SMALLCONST       000800-007FC5              100
 
                                   Symbol Table
 
