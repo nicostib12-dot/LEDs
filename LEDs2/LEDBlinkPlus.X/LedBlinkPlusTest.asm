@@ -18,7 +18,7 @@ CONFIG  PBADEN = OFF
 ; VARIABLES (Access Bank)
 ;============================
 PSECT udata_acs
-TIEMPO:   DS 1      ; Cuenta segundos de 0 a 17
+TIEMPO:   DS 1      ; contador general de segundos
 
 ;============================
 ; CÓDIGO
@@ -53,13 +53,9 @@ _main:
     MOVWF T0CON,A
 
 ;--------------------------------
-; Precarga para 1 segundo
+; Precarga del timer0
 ;--------------------------------
-    MOVLW 0xE1
-    MOVWF TMR0H,A
-    MOVLW 0x6B
-    MOVWF TMR0L,A
-
+    CAll RELOAD_TIMER0
     BSF T0CON,7,A        ; Encender Timer0
 ;=====================================================
 ; LOOP PRINCIPAL (INFINITO)
@@ -79,10 +75,7 @@ ESPERA:
 ;--------------------------------
 ; Recargar Timer para siguiente segundo
 ;--------------------------------
-    MOVLW 0xE1
-    MOVWF TMR0H,A
-    MOVLW 0x6B
-    MOVWF TMR0L,A
+    CALL RELOAD_TIMER0
 
 ;--------------------------------
 ; Incrementar tiempo global
@@ -90,12 +83,13 @@ ESPERA:
     INCF TIEMPO,F,A
 
 ;=====================================================
-; ¿TIEMPO < 10? ? FASE 1
+; FASE1: 5 parpadeos de 1s
 ;=====================================================
 
     MOVLW 10
     SUBWF TIEMPO,W,A     ; W = TIEMPO - 10
     BTFSS STATUS,0       ; ¿Borrow? (TIEMPO < 10)
+    GOTO FASE1
     GOTO FASE2           ; Si no hay borrow, TIEMPO >= 10
 
 ;--------------------------------
@@ -106,13 +100,13 @@ FASE1:
     GOTO VERIFICAR_RESET
 
 ;=====================================================
-; FASE 2 (TIEMPO 10?17)
+; FASE 2 
 ;=====================================================
 
 FASE2:
 
 ;--------------------------------
-; Cambiar LED cada 2 segundos
+; Parpadea LED cada 2 segundos
 ;--------------------------------
 ; Revisamos bit 0 del contador:
 ; Si TIEMPO es PAR (bit0 = 0)
@@ -120,7 +114,7 @@ FASE2:
 ;--------------------------------
 
     BTFSC TIEMPO,0,A     ; ¿Bit0 = 1? (impar)
-    GOTO VERIFICAR_RESET ; Si impar ? no hacer nada
+    GOTO VERIFICAR_RESET ; Si impar = no hacer nada
 
     BTG LATB,0,A         ; Si par ? cambiar LED
 
@@ -140,6 +134,18 @@ VERIFICAR_RESET:
 ;--------------------------------
     CLRF TIEMPO,A
     GOTO LOOP
+    
+;==============================
+; SUBRUTINA: RECARGAR TIMER0
+;==============================
+RELOAD_TIMER0:
+    MOVLW 0xE1
+    MOVWF TMR0H,A
+    MOVLW 0x6B
+    MOVWF TMR0L,A
+    RETURN
+    
+    
 
 END
 
