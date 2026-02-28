@@ -12,7 +12,7 @@
 # in delta units.  Any other numeric values are decimal.
 %PSECTS
 $build/default/debug/LedBlinkPlusTest.o
-code CODE 0 7FE8 7FE8 18 1 2
+code CODE 0 7FAE 7FAE 52 1 2
 udata_acs COMRAM 1 0 0 1 1 1
 config CONFIG 4 300000 300000 E 1 1
 # %UNUSED Section
@@ -31,15 +31,15 @@ BANK4 400-4FF 1
 BANK5 500-5FF 1
 BANK6 600-6FF 1
 BANK7 700-7FF 1
-CONST 0-7FE7 1
+CONST 0-7FAD 1
 IDLOC 200000-200007 1
-SMALLCONST 800-7FE7 1
-CODE 0-7FE7 1
+SMALLCONST 800-7FAD 1
+CODE 0-7FAD 1
 BIGRAM 0-7FF 1
 BIGSFR F60-FFF 1
 COMRAM 1-5F 1
 EEDATA F00000-F000FF 1
-MEDIUMCONST 800-7FE7 1
+MEDIUMCONST 800-7FAD 1
 # %LINETAB Section
 # This section enumerates the file/line to address mappings.
 # The beginning of the section is indicated by %LINETAB.
@@ -54,18 +54,41 @@ MEDIUMCONST 800-7FE7 1
 # All other numeric values are in decimal.
 %LINETAB
 $build/default/debug/LedBlinkPlusTest.o
-7FE8 code CODE >34:C:\Users\nicos\Desktop\LEDs\LEDs2\LEDBlinkPlus.X\LedBlinkPlusTest.asm
-7FEA code CODE >35:C:\Users\nicos\Desktop\LEDs\LEDs2\LEDBlinkPlus.X\LedBlinkPlusTest.asm
-7FEC code CODE >40:C:\Users\nicos\Desktop\LEDs\LEDs2\LEDBlinkPlus.X\LedBlinkPlusTest.asm
-7FEE code CODE >41:C:\Users\nicos\Desktop\LEDs\LEDs2\LEDBlinkPlus.X\LedBlinkPlusTest.asm
-7FF0 code CODE >46:C:\Users\nicos\Desktop\LEDs\LEDs2\LEDBlinkPlus.X\LedBlinkPlusTest.asm
-7FF2 code CODE >52:C:\Users\nicos\Desktop\LEDs\LEDs2\LEDBlinkPlus.X\LedBlinkPlusTest.asm
-7FF4 code CODE >53:C:\Users\nicos\Desktop\LEDs\LEDs2\LEDBlinkPlus.X\LedBlinkPlusTest.asm
-7FF6 code CODE >58:C:\Users\nicos\Desktop\LEDs\LEDs2\LEDBlinkPlus.X\LedBlinkPlusTest.asm
-7FF8 code CODE >59:C:\Users\nicos\Desktop\LEDs\LEDs2\LEDBlinkPlus.X\LedBlinkPlusTest.asm
-7FFA code CODE >60:C:\Users\nicos\Desktop\LEDs\LEDs2\LEDBlinkPlus.X\LedBlinkPlusTest.asm
-7FFC code CODE >61:C:\Users\nicos\Desktop\LEDs\LEDs2\LEDBlinkPlus.X\LedBlinkPlusTest.asm
-7FFE code CODE >63:C:\Users\nicos\Desktop\LEDs\LEDs2\LEDBlinkPlus.X\LedBlinkPlusTest.asm
+7FAE code CODE >34:C:\Users\nicos\Desktop\LEDs\LEDs2\LEDBlinkPlus.X\LedBlinkPlusTest.asm
+7FB0 code CODE >35:C:\Users\nicos\Desktop\LEDs\LEDs2\LEDBlinkPlus.X\LedBlinkPlusTest.asm
+7FB2 code CODE >40:C:\Users\nicos\Desktop\LEDs\LEDs2\LEDBlinkPlus.X\LedBlinkPlusTest.asm
+7FB4 code CODE >41:C:\Users\nicos\Desktop\LEDs\LEDs2\LEDBlinkPlus.X\LedBlinkPlusTest.asm
+7FB6 code CODE >46:C:\Users\nicos\Desktop\LEDs\LEDs2\LEDBlinkPlus.X\LedBlinkPlusTest.asm
+7FB8 code CODE >52:C:\Users\nicos\Desktop\LEDs\LEDs2\LEDBlinkPlus.X\LedBlinkPlusTest.asm
+7FBA code CODE >53:C:\Users\nicos\Desktop\LEDs\LEDs2\LEDBlinkPlus.X\LedBlinkPlusTest.asm
+7FBC code CODE >58:C:\Users\nicos\Desktop\LEDs\LEDs2\LEDBlinkPlus.X\LedBlinkPlusTest.asm
+7FBE code CODE >59:C:\Users\nicos\Desktop\LEDs\LEDs2\LEDBlinkPlus.X\LedBlinkPlusTest.asm
+7FC0 code CODE >60:C:\Users\nicos\Desktop\LEDs\LEDs2\LEDBlinkPlus.X\LedBlinkPlusTest.asm
+7FC2 code CODE >61:C:\Users\nicos\Desktop\LEDs\LEDs2\LEDBlinkPlus.X\LedBlinkPlusTest.asm
+7FC4 code CODE >63:C:\Users\nicos\Desktop\LEDs\LEDs2\LEDBlinkPlus.X\LedBlinkPlusTest.asm
+7FC6 code CODE >74:C:\Users\nicos\Desktop\LEDs\LEDs2\LEDBlinkPlus.X\LedBlinkPlusTest.asm
+7FC8 code CODE >75:C:\Users\nicos\Desktop\LEDs\LEDs2\LEDBlinkPlus.X\LedBlinkPlusTest.asm
+7FCC code CODE >77:C:\Users\nicos\Desktop\LEDs\LEDs2\LEDBlinkPlus.X\LedBlinkPlusTest.asm
+7FCE code CODE >82:C:\Users\nicos\Desktop\LEDs\LEDs2\LEDBlinkPlus.X\LedBlinkPlusTest.asm
+7FD0 code CODE >83:C:\Users\nicos\Desktop\LEDs\LEDs2\LEDBlinkPlus.X\LedBlinkPlusTest.asm
+7FD2 code CODE >84:C:\Users\nicos\Desktop\LEDs\LEDs2\LEDBlinkPlus.X\LedBlinkPlusTest.asm
+7FD4 code CODE >85:C:\Users\nicos\Desktop\LEDs\LEDs2\LEDBlinkPlus.X\LedBlinkPlusTest.asm
+7FD6 code CODE >90:C:\Users\nicos\Desktop\LEDs\LEDs2\LEDBlinkPlus.X\LedBlinkPlusTest.asm
+7FD8 code CODE >96:C:\Users\nicos\Desktop\LEDs\LEDs2\LEDBlinkPlus.X\LedBlinkPlusTest.asm
+7FDA code CODE >97:C:\Users\nicos\Desktop\LEDs\LEDs2\LEDBlinkPlus.X\LedBlinkPlusTest.asm
+7FDC code CODE >98:C:\Users\nicos\Desktop\LEDs\LEDs2\LEDBlinkPlus.X\LedBlinkPlusTest.asm
+7FDE code CODE >99:C:\Users\nicos\Desktop\LEDs\LEDs2\LEDBlinkPlus.X\LedBlinkPlusTest.asm
+7FE2 code CODE >105:C:\Users\nicos\Desktop\LEDs\LEDs2\LEDBlinkPlus.X\LedBlinkPlusTest.asm
+7FE4 code CODE >106:C:\Users\nicos\Desktop\LEDs\LEDs2\LEDBlinkPlus.X\LedBlinkPlusTest.asm
+7FE8 code CODE >122:C:\Users\nicos\Desktop\LEDs\LEDs2\LEDBlinkPlus.X\LedBlinkPlusTest.asm
+7FEA code CODE >123:C:\Users\nicos\Desktop\LEDs\LEDs2\LEDBlinkPlus.X\LedBlinkPlusTest.asm
+7FEE code CODE >125:C:\Users\nicos\Desktop\LEDs\LEDs2\LEDBlinkPlus.X\LedBlinkPlusTest.asm
+7FF0 code CODE >133:C:\Users\nicos\Desktop\LEDs\LEDs2\LEDBlinkPlus.X\LedBlinkPlusTest.asm
+7FF2 code CODE >134:C:\Users\nicos\Desktop\LEDs\LEDs2\LEDBlinkPlus.X\LedBlinkPlusTest.asm
+7FF4 code CODE >135:C:\Users\nicos\Desktop\LEDs\LEDs2\LEDBlinkPlus.X\LedBlinkPlusTest.asm
+7FF6 code CODE >136:C:\Users\nicos\Desktop\LEDs\LEDs2\LEDBlinkPlus.X\LedBlinkPlusTest.asm
+7FFA code CODE >141:C:\Users\nicos\Desktop\LEDs\LEDs2\LEDBlinkPlus.X\LedBlinkPlusTest.asm
+7FFC code CODE >142:C:\Users\nicos\Desktop\LEDs\LEDs2\LEDBlinkPlus.X\LedBlinkPlusTest.asm
 # %SYMTAB Section
 # An enumeration of all symbols in the program.
 # The beginning of the section is indicated by %SYMTAB.
@@ -91,7 +114,7 @@ __Hudata_bank5 0 0 ABS 0 udata_bank5 -
 __Hudata_bank6 0 0 ABS 0 udata_bank6 -
 __Hudata_bank7 0 0 ABS 0 udata_bank7 -
 __L__absolute__ 0 0 ABS 0 __absolute__ -
-_main 7FE8 0 CODE 0 code build/default/debug/LedBlinkPlusTest.o
+_main 7FAE 0 CODE 0 code build/default/debug/LedBlinkPlusTest.o
 isa$xinst 0 0 ABS 0 - build/default/debug/LedBlinkPlusTest.o
 __Hedata 0 0 ABS 0 edata -
 __Hudata 0 0 ABS 0 udata -
@@ -146,7 +169,7 @@ __Ludata_acs 0 0 ABS 0 udata_acs -
 # and size are in units of delta. The file address is in units of bytes.
 # All other numeric quantities are in decimal.
 %SEGMENTS
-code 0 7FE8 7FE8 18 1
+code 0 7FAE 7FAE 52 1
 udata_acs 1 0 0 1 1
 # %NOTES Section
 # This section contains data of all the note-psects.  The beginning of the section
