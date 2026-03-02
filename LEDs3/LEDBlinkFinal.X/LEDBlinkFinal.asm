@@ -128,5 +128,21 @@ SEQ1:
     MOVLW 0x01
     MOVWF INDICE
     RETURN
+;---------------------------------------------------------
+; SECUENCIA 2 ? Corrimiento izquierda
+;---------------------------------------------------------
+
+SEQ2:
+    MOVF INDICE,W
+    MOVWF LATD
+
+    RRNCF INDICE,F
+    MOVLW 0x00
+    CPFSEQ INDICE
+    RETURN
+
+    MOVLW 0x08
+    MOVWF INDICE
+    RETURN
 
 END
