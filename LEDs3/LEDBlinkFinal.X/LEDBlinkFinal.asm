@@ -103,3 +103,30 @@ INIT:
     BSF INTCON3,INT1IE
     BCF INTCON2,INTEDG1    ; Flanco descendente
 
+;---------------------------------------------------------
+; BUCLE PRINCIPAL
+;---------------------------------------------------------
+
+MAIN:
+
+    MOVF MODO,W
+    SUBLW 0x00
+    BZ SEQ1
+;---------------------------------------------------------
+; SECUENCIA 1 ? Corrimiento derecha
+;---------------------------------------------------------
+
+SEQ1:
+    MOVF INDICE,W
+    MOVWF LATD
+
+    RLNCF INDICE,F
+    MOVLW 0x10
+    CPFSEQ INDICE
+    RETURN
+
+    MOVLW 0x01
+    MOVWF INDICE
+    RETURN
+
+END
