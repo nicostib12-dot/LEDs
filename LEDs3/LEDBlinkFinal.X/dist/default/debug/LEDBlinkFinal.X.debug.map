@@ -6,7 +6,7 @@ Linker command line:
   --edf=C:\Program Files\Microchip\xc8\v3.10\pic\dat\20250813170317_en.msgs \
   -cs -h+dist/default/debug\LEDBlinkFinal.X.debug.sym \
   --cmf=dist/default/debug\LEDBlinkFinal.X.debug.cmf -z -Q18F4550 \
-  -oC:\Users\nicos\AppData\Local\Temp\xcAscx4.0\driver_tmp_3.o \
+  -oC:\Users\nicos\AppData\Local\Temp\xcAsbwo.0\driver_tmp_3.o \
   --fixupoverflow=error -ver=XC8 PIC(R) Assembler --fixupoverflow=lstwarn \
   -Mdist/default/debug/LEDBlinkFinal.X.debug.map -E1 -ACODE=00h-07FFFh \
   -ACONST=00h-07FFFh -ASMALLCONST=0800h-08FFhx120 \
@@ -29,12 +29,12 @@ build/default/debug/LEDBlinkFinal.o
                 config                           300000   300000        E        0       4
                 intVec                                0        0        C        0       0
                 resetVec                              C        C        4        0       0
-                code                               7F34     7F34       CC     3F9A       0
+                code                               7F0C     7F0C       F4     3F86       0
                 udata_acs                             0        0        7        0       1
 
 TOTAL           Name                               Link     Load   Length     Space
         CLASS   CODE           
-                code                               7F34     7F34       CC         0
+                code                               7F0C     7F0C       F4         0
 
         CLASS   CONST          
 
@@ -86,7 +86,7 @@ TOTAL           Name                               Link     Load   Length     Sp
 SEGMENTS        Name                           Load    Length   Top    Selector   Space  Class
 
                 udata_acs                      000000  000007  000007         0       1  COMRAM  
-                code                           007F34  0000CC  008000      3F9A       0  CODE    
+                code                           007F0C  0000F4  008000      3F86       0  CODE    
 
 
 UNUSED ADDRESS RANGES
@@ -102,15 +102,15 @@ UNUSED ADDRESS RANGES
         BANK7            000700-0007FF              100
         BIGRAM           000010-0007FF              7F0
         BIGSFR           000F60-000FFF               A0
-        CODE             000010-007F33             7F24
+        CODE             000010-007F0B             7EFC
         COMRAM           000007-00005F               59
-        CONST            000010-007F33             7F24
+        CONST            000010-007F0B             7EFC
         EEDATA           F00000-F000FF              100
         IDLOC            200000-200007                8
-        MEDIUMCONST      000800-007F33             7734
+        MEDIUMCONST      000800-007F0B             770C
         RAM              000060-0007FF              100
         SFR              000F60-000FFF               A0
-        SMALLCONST       000800-007F33              100
+        SMALLCONST       000800-007F0B              100
 
                                   Symbol Table
 

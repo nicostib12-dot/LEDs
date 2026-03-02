@@ -135,9 +135,7 @@ SEQ1:
 
     RLNCF INDICE,F,A
     MOVLW 0x10
-    CPFSEQ INDICE,A
-    RETURN
-
+    CPFSGT INDICE,A
     MOVLW 0x01
     MOVWF INDICE,A
     RETURN
@@ -151,9 +149,7 @@ SEQ2:
 
     RRNCF INDICE,F,A
     MOVLW 0x00
-    CPFSEQ INDICE,A
-    RETURN
-
+    CPFSLT INDICE,A
     MOVLW 0x08
     MOVWF INDICE,A
     RETURN
@@ -167,7 +163,7 @@ SEQ3:
     RETURN
 
 ;---------------------------------------------------------
-; SECUENCIA 4 ? Toggle completo
+; SECUENCIA 4  Toggle completo
 ;---------------------------------------------------------
 
 SEQ4:
@@ -206,13 +202,25 @@ ISR_TIMER0:
     MOVWF TMR0H,A
     MOVLW 0xC0
     MOVWF TMR0L,A
-
     INCF TICK,F,A
+
+    ; Decrementar debounce si >0
+    MOVF DB_MODE,W,A
+    BTFSC STATUS,2,A
+    GOTO SKIP_MODE
+    DECF DB_MODE,F,A
+    
+SKIP_MODE:
+    MOVF DB_SPEED,W,A
+    BTFSC STATUS,2,A
+    GOTO SKIP_SPEED
+    DECF DB_SPEED,F,A
+SKIP_SPEED:
 
     ; Verificar velocidad
     BTFSC VELOCIDAD,0,A
     GOTO RAPIDA
-
+    
 LENTA:
     MOVLW 30
     CPFSGT TICK,A
@@ -230,29 +238,40 @@ ACTUALIZAR:
     RETURN
 
 ;---------------------------------------------------------
-; ISR INT0 Cambiar secuencia
+; ISR INT0 Cambiar secuencia con debounce
 ;---------------------------------------------------------
 
 ISR_INT0:
 
-    BCF INTCON,4,A
-
+    BCF INTCON,4,A  ; Limpiar bandera INT0
+    MOVF DB_MODE,W,A
+    BTFSC STATUS,2,A           ; Si DB_MODE = 0
+    GOTO OK_MODE
+    RETURN
+    
+OK_MODE:
     INCF MODO,F,A
     MOVLW 4
     CPFSEQ MODO,A
+    MOVLW 5                ; Valor de debounce (~50 ms)
+    MOVWF DB_MODE,A
     RETURN
-
-    CLRF MODO,A
-    RETURN
-
 ;---------------------------------------------------------
 ; ISR INT1  Cambiar velocidad
 ;---------------------------------------------------------
 
 ISR_INT1:
 
-    BCF INTCON3,3,A
+    BCF INTCON3,3,A ; Limpiar bandera INT1
+    MOVF DB_SPEED,W,A
+    BTFSC STATUS,2,A
+    GOTO OK_SPEED
+    RETURN
+    
+OK_SPEED:
     COMF VELOCIDAD,F,A
+    MOVLW 5                ; Valor de debounce (~50 ms)
+    MOVWF DB_SPEED,A
     RETURN
 
 END
