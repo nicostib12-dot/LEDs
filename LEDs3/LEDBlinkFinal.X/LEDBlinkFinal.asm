@@ -48,6 +48,58 @@ GOTO INIT
 PSECT intVec,class=CODE,reloc=2
 ORG 0x0008
  
+ ;---------------------------------------------------------
+; CÓDIGO PRINCIPAL
+;---------------------------------------------------------
 
+PSECT code,class=CODE,reloc=2
 
+;---------------------------------------------------------
+; INICIALIZACIÓN
+;---------------------------------------------------------
+
+INIT:
+
+    ; PORTD como salida (LEDs)
+    CLRF LATD
+    CLRF PORTD
+    CLRF TRISD
+
+    ; RB0 y RB1 como entradas (botones)
+    BSF TRISB,0
+    BSF TRISB,1
+
+    ; Inicializar variables
+    CLRF TICK
+    CLRF MODO
+    CLRF VELOCIDAD
+    CLRF FLAG_UPDATE
+    MOVLW 0x01
+    MOVWF INDICE
+
+;---------------------------------------------------------
+; CONFIGURAR TIMER0
+;---------------------------------------------------------
+
+    MOVLW b'10000111'      ; Timer0 ON, 16bit, prescaler 256
+    MOVWF T0CON
+
+    ; Precarga para ~10ms (depende del cristal)
+    MOVLW 0x63
+    MOVWF TMR0H
+    MOVLW 0xC0
+    MOVWF TMR0L
+
+    BSF INTCON,TMR0IE      ; Habilita Timer0
+    BSF INTCON,GIE         ; Habilita interrupciones globales
+
+;---------------------------------------------------------
+; CONFIGURAR INTERRUPCIONES EXTERNAS
+;---------------------------------------------------------
+
+    BSF INTCON,INT0IE
+    BCF INTCON2,INTEDG0    ; Flanco descendente
+
+    BSF INTCON3,INT1IE
+    BCF INTCON2,INTEDG1    ; Flanco descendente
 
