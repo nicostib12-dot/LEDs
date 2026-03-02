@@ -1,13 +1,10 @@
 ; ========================================================================
-; PIC18F4550 - SECUENCIA 4 LEDs (PREPARADO PARA VELOCIDAD)
-; COMMIT 1: Separación de botones
-; RB0 = Velocidad
-; RB1 = Secuencia (INT0)
+; PIC18F4550 - SECUENCIA 4 LEDs
+; 
 ; ========================================================================
 
 #include <xc.inc>
 
-; CONFIGURACIÓN
 CONFIG FOSC = INTOSCIO_EC
 CONFIG WDT = OFF
 CONFIG LVP = OFF
@@ -17,12 +14,12 @@ CONFIG XINST = OFF
 CONFIG PWRT = ON
 CONFIG DEBUG = OFF
 
-; VARIABLES EN RAM
+; VARIABLES
 PSECT udata_acs
 secuencia:  DS 1
 contador:   DS 1
-velocidad:  DS 1      ; NUEVA VARIABLE
-btnState:   DS 1      ; NUEVA VARIABLE
+velocidad:  DS 1
+btnState:   DS 1
 delay_l:    DS 1
 delay_h:    DS 1
 
@@ -43,22 +40,20 @@ PSECT code
 
 INICIO:
 
-        ; Oscilador 8 MHz
         MOVLW 0x72
         MOVWF OSCCON, a
 WAIT_OSC:
         BTFSS OSCCON, 2, a
         BRA WAIT_OSC
 
-        ; Puerto D salida
         MOVLW 0xF0
         MOVWF TRISD, a
         CLRF LATD, a
 
-        ; RB0 = Velocidad
+        ; RB0 = velocidad
         BSF TRISB, 0, a
 
-        ; RB1 = INT0 (Secuencia)
+        ; RB1 = secuencia (INT0)
         BSF TRISB, 1, a
 
         ; INT0 flanco descendente
@@ -67,14 +62,13 @@ WAIT_OSC:
         BSF INTCON, 4, a
         BSF INTCON, 7, a
 
-        ; Inicializar variables
         CLRF secuencia, a
         CLRF contador, a
         CLRF velocidad, a
+
         MOVLW 1
         MOVWF btnState, a
 
-        ; Primer LED
         MOVLW 0x01
         MOVWF LATD, a
 
@@ -83,6 +77,9 @@ WAIT_OSC:
 ; ========================================================================
 
 BUCLE:
+
+        CALL CHECK_VEL     ; ? NUEVO
+
         CALL MOSTRAR_LED
         CALL ESPERAR_300MS
 
@@ -90,8 +87,37 @@ BUCLE:
         BRA BUCLE
 
 ; ========================================================================
+; RUTINA BOTÓN VELOCIDAD (3 NIVELES)
+; ========================================================================
+
+CHECK_VEL:
+
+        BTFSC PORTB,0      ; Si está en 1 (no presionado)
+        GOTO RELEASE
+
+        MOVF btnState,W
+        BZ END_CHECK       ; Ya estaba presionado
+
+        CLRF btnState      ; Bloqueo anti-rebote
+        INCF velocidad,f   ; Cambiar nivel
+
+        MOVLW 3
+        CPFSEQ velocidad
+        GOTO END_CHECK
+
+        CLRF velocidad     ; Si llega a 3 ? vuelve a 0
+
+END_CHECK:
+        RETURN
+
+RELEASE:
+        MOVLW 1
+        MOVWF btnState
+        RETURN
+
+; ========================================================================
 ; MOSTRAR LED SEGÚN SECUENCIA
-; (AQUÍ VA TODO TU CÓDIGO ORIGINAL DE SECUENCIAS)
+; (Aquí pegas tus SEQ0, SEQ1, SEQ2, SEQ3 sin cambios)
 ; ========================================================================
 
 MOSTRAR_LED:
@@ -113,11 +139,10 @@ CHECK2:
         GOTO SEQ3
         GOTO SEQ2
 
-; ===== SECUENCIAS =====
-; (Aquí puedes pegar exactamente tus SEQ0, SEQ1, SEQ2, SEQ3 sin cambios)
+
 
 ; ========================================================================
-; DELAY (SIN CAMBIOS TODAVÍA)
+; DELAY (AÚN FIJO)
 ; ========================================================================
 
 ESPERAR_300MS:
@@ -135,9 +160,6 @@ DELAY_INT:
         BRA DELAY_EXT
         RETURN
 
-; ========================================================================
-; ISR INT0 - SOLO CAMBIA SECUENCIA
-; ========================================================================
 
 ISR_BOTON:
         BTFSS INTCON, 1, a
