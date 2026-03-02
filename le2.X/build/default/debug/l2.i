@@ -5500,15 +5500,12 @@ bucle2:
     GOTO bucle2
     RETURN
 
-;============================
-; Delay 1 segundo (8MHz)
-;============================
 timer1:
-    MOVLW 32
+    MOVLW 4
     MOVWF Cont1
 
 Loop1:
-    MOVLW 250
+    MOVLW 200
     MOVWF Cont2
 
 Loop2:
@@ -5526,10 +5523,6 @@ Loop3:
     GOTO Loop1
 
     RETURN
-
-;============================
-; Delay 2 segundos
-;============================
 timer2:
     CALL timer1
     CALL timer1
