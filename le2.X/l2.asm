@@ -57,18 +57,20 @@ bucle2:
     RETURN
 
 timer1:
-    MOVLW 4
+    MOVLW 17
     MOVWF Cont1
 
 Loop1:
-    MOVLW 200
+    MOVLW 50
     MOVWF Cont2
 
 Loop2:
-    MOVLW 250
+    MOVLW 50
     MOVWF Cont3
 
 Loop3:
+    nop
+    nop
     DECFSZ Cont3, F
     GOTO Loop3
 
