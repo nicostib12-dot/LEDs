@@ -112,6 +112,17 @@ MAIN:
     MOVF MODO,W
     SUBLW 0x00
     BZ SEQ1
+    
+    MOVF MODO,W
+    SUBLW 0x01
+    BZ SEQ2
+
+    MOVF MODO,W
+    SUBLW 0x02
+    BZ SEQ3
+
+    GOTO SEQ4
+    
 ;---------------------------------------------------------
 ; SECUENCIA 1 ? Corrimiento derecha
 ;---------------------------------------------------------
@@ -144,5 +155,20 @@ SEQ2:
     MOVLW 0x08
     MOVWF INDICE
     RETURN
+;---------------------------------------------------------
+; SECUENCIA 3 ? Par/Impar
+;---------------------------------------------------------
+
+SEQ3:
+    MOVLW 0x0A
+    MOVWF LATD
+    RETURN
+
+;---------------------------------------------------------
+; SECUENCIA 4 ? Toggle completo
+;---------------------------------------------------------
+
+SEQ4:
+    COMF LATD,F
 
 END
