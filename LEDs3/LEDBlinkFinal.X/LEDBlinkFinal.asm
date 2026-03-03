@@ -2,7 +2,7 @@
 ; Microcontrolador: PIC18F4550
 ; Oscilador interno: 8 MHz
 ; Funcionalidades:
-;   - 4 efectos distintos en 4 LEDs (RD0?RD3)
+;   - 4 efectos distintos en 4 LEDs (RD0/RD3)
 ;   - INT0 (RB0) cambia la secuencia
 ;   - INT1 (RB1) cambia la velocidad
 ;   - Timer0 genera base de tiempo (~10 ms)
