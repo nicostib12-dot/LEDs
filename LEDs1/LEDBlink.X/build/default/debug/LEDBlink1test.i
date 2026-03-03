@@ -10,6 +10,7 @@
 ; MICRO: PIC18F4550
 ; MÉTODO: Timer0 modo 16 bits (Polling)
 ; SOLO SE CONFIGURA RB0 COMO SALIDA
+; LISTO PARA SUBIR
 ;=====================================================
 
 # 1 "C:\\Program Files\\Microchip\\xc8\\v3.10\\pic\\include/xc.inc" 1 3
@@ -5449,7 +5450,7 @@ stk_offset SET 0
 auto_size SET 0
 ENDM
 # 6 "C:\\Program Files\\Microchip\\xc8\\v3.10\\pic\\include/xc.inc" 2 3
-# 9 "LEDBlink1test.asm" 2
+# 10 "LEDBlink1test.asm" 2
 
 ;============================
 ; CONFIGURACIÓN

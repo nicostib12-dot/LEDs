@@ -3,6 +3,7 @@
 ; MICRO: PIC18F4550
 ; MÉTODO: Timer0 modo 16 bits (Polling)
 ; SOLO SE CONFIGURA RB0 COMO SALIDA
+; LISTO PARA SUBIR
 ;=====================================================
 
 #include <xc.inc>
