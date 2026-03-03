@@ -4,19 +4,19 @@ Linker command line:
 
 -W-3 \
   --edf=C:\Program Files\Microchip\xc8\v3.10\pic\dat\20250813170317_en.msgs \
-  -cs -h+dist/default/debug\le3.X.debug.sym \
-  --cmf=dist/default/debug\le3.X.debug.cmf -z -Q18F4550 \
-  -oC:\Users\david\AppData\Local\Temp\xcAs1ceo.0\driver_tmp_3.o \
+  -cs -h+dist/default/production\le3.X.production.sym \
+  --cmf=dist/default/production\le3.X.production.cmf -z -Q18F4550 \
+  -oC:\Users\david\AppData\Local\Temp\xcAs177o.0\driver_tmp_3.o \
   --fixupoverflow=error -ver=XC8 PIC(R) Assembler --fixupoverflow=lstwarn \
-  -Mdist/default/debug/le3.X.debug.map -E1 -ACODE=00h-07h,0Ch-07FFFh \
-  -ACONST=00h-07h,0Ch-07FFFh -ASMALLCONST=0800h-08FFhx120 \
-  -AMEDIUMCONST=0800h-07FFFh -ACOMRAM=00h-05Fh -AABS1=00h-07FFh \
-  -ABIGRAM=00h-07FFh -ARAM=060h-0FFh,0100h-01FFhx7 -ABANK0=060h-0FFh \
-  -ABANK1=0100h-01FFh -ABANK2=0200h-02FFh -ABANK3=0300h-03FFh \
-  -ABANK4=0400h-04FFh -ABANK5=0500h-05FFh -ABANK6=0600h-06FFh \
-  -ABANK7=0700h-07FFh -ASFR=0F60h-0FFFh -ABIGSFR=0F60h-0FFFh \
-  -AIDLOC=0200000h-0200007h -AEEDATA=0F00000h-0F000FFh \
-  build/default/debug/l3.o 
+  -Mdist/default/production/le3.X.production.map -E1 \
+  -ACODE=00h-07h,0Ch-07FFFh -ACONST=00h-07h,0Ch-07FFFh \
+  -ASMALLCONST=0800h-08FFhx120 -AMEDIUMCONST=0800h-07FFFh -ACOMRAM=00h-05Fh \
+  -AABS1=00h-07FFh -ABIGRAM=00h-07FFh -ARAM=060h-0FFh,0100h-01FFhx7 \
+  -ABANK0=060h-0FFh -ABANK1=0100h-01FFh -ABANK2=0200h-02FFh \
+  -ABANK3=0300h-03FFh -ABANK4=0400h-04FFh -ABANK5=0500h-05FFh \
+  -ABANK6=0600h-06FFh -ABANK7=0700h-07FFh -ASFR=0F60h-0FFFh \
+  -ABIGSFR=0F60h-0FFFh -AIDLOC=0200000h-0200007h -AEEDATA=0F00000h-0F000FFh \
+  build/default/production/l3.o 
 
 Object code version is 3.11
 
@@ -25,7 +25,7 @@ Machine type is 18F4550
 
 
                 Name                               Link     Load   Length Selector   Space Scale
-build/default/debug/l3.o
+build/default/production/l3.o
                 config                           300000   300000        E        0       4
                 intVec                             7EA8     7EA8        C     3F54       0
                 resetVec                              0        0        4        0       0

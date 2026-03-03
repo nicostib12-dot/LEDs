@@ -5,9 +5,12 @@
 # 1 "<command line>" 1
 # 1 "<built-in>" 2
 # 1 "l3.asm" 2
-; ========================================================================
-; PIC18F4550 - SECUENCIA DE 4 LEDs (VERSIÓN MEJORADA)
-; ========================================================================
+;========================================================
+; PIC18F4550 - 3 Velocidades + 4 Secuencias
+; RB0 = Cambia secuencia (INT0)
+; RB1 = Cambia velocidad (anti-rebote)
+; RD0-RD3 = LEDs
+;========================================================
 
 # 1 "C:\\Program Files\\Microchip\\xc8\\v3.10\\pic\\include/xc.inc" 1 3
 
@@ -5446,9 +5449,8 @@ stk_offset SET 0
 auto_size SET 0
 ENDM
 # 6 "C:\\Program Files\\Microchip\\xc8\\v3.10\\pic\\include/xc.inc" 2 3
-# 6 "l3.asm" 2
+# 9 "l3.asm" 2
 
-; CONFIGURACIÓN DEL PIC
 CONFIG FOSC = INTOSCIO_EC
 CONFIG WDT = OFF
 CONFIG LVP = OFF
@@ -5456,402 +5458,292 @@ CONFIG PBADEN = OFF
 CONFIG MCLRE = OFF
 CONFIG XINST = OFF
 CONFIG PWRT = ON
-CONFIG DEBUG = OFF
 
+;--------------------------------------------------------
 ; VARIABLES
+;--------------------------------------------------------
+
 PSECT udata_acs
-secuencia: DS 1 ; 0-3 (qué secuencia está activa)
-contador: DS 1 ; contador dentro de la secuencia
-delay_l: DS 1 ; delay bajo
-delay_h: DS 1 ; delay alto
-temp: DS 1 ; variable temporal
+Secuencia: DS 1
+Velocidad: DS 1
+Delay1: DS 1
+Delay2: DS 1
+Delay3: DS 1
+Direccion: DS 1
+SecTmp: DS 1
+BtnState: DS 1
+Debounce: DS 1
 
+;--------------------------------------------------------
 ; VECTORES
-PSECT resetVec, class=CODE, reloc=2
+;--------------------------------------------------------
+
+PSECT resetVec,class=CODE,reloc=2
 ORG 0x00
-GOTO INICIO
+GOTO INIT
 
-PSECT intVec, class=CODE, reloc=2
+PSECT intVec,class=CODE,reloc=2
 ORG 0x08
-GOTO ISR_BOTON
-
-; ========================================================================
-; PROGRAMA PRINCIPAL
-; ========================================================================
+GOTO ISR
 
 PSECT code
 
-INICIO:
-        ; Configurar oscilador a 8 MHz
-        MOVLW 0x72 ; IRCF=111 (8MHz), SCS=10
-        MOVWF OSCCON, a
+;========================================================
+; INIT
+;========================================================
+
+INIT:
+
+    MOVLW 0x72 ; 8 MHz
+    MOVWF OSCCON
+
+    MOVLW 0x0F
+    MOVWF ADCON1
+
+    CLRF Secuencia
+    CLRF Velocidad
+    CLRF Direccion
+    MOVLW 1
+    MOVWF BtnState
+
+    CLRF TRISD
+    CLRF LATD
+
+    MOVLW 0x01
+    MOVWF LATD
+
+    ; ((PORTB) and 0FFh), 0, a = Secuencia (((PORTB) and 0FFh), 0, a)
+    ; ((PORTB) and 0FFh), 1, a = Velocidad
+    BSF TRISB,0
+    BSF TRISB,1
+
+    ; ((PORTB) and 0FFh), 0, a flanco descendente (((PORTB) and 0FFh), 0, a)
+    BCF INTCON2,6
+    BCF INTCON,1
+    BSF INTCON,4
+    BSF INTCON,7
+
+;========================================================
+; MAIN
+;========================================================
+
+MAIN:
 
-        ; Esperar a que oscilador se estabilice
-        BTFSS OSCCON, 2, a
-        BRA $-2
+    CALL CHECK_VEL
 
-        ; Configurar PUERTO D (LEDs)
-        ; ((PORTD) and 0FFh), 0, a-((PORTD) and 0FFh), 3, a como salidas
-        MOVLW 0xF0
-        MOVWF TRISD, a
-        CLRF LATD, a ; Todos los LEDs apagados
+    MOVF Secuencia,W
+    ANDLW 0x03
+    MOVWF Secuencia
 
-        ; Configurar PUERTO B (Botón)
-        ; ((PORTB) and 0FFh), 0, a como entrada
-        BSF TRISB, 0, a
-
-        ; Deshabilitar pull-ups internos de PORTB
-        BSF INTCON2, 7, a ; ((INTCON2) and 0FFh), 7, a = 1
-
-        ; Configurar ((PORTB) and 0FFh), 0, a (interrución por botón)
-        ; Flanco descendente (de HIGH a LOW)
-        BCF INTCON2, 6, a ; ((INTCON2) and 0FFh), 6, a = 0
-
-        ; Habilitar ((PORTB) and 0FFh), 0, a
-        BCF INTCON, 1, a ; ((INTCON) and 0FFh), 1, a = 0 (limpiar bandera)
-        BSF INTCON, 4, a ; ((INTCON) and 0FFh), 4, a = 1 (habilitar)
-
-        ; Habilitar interrupciones globales
-        BSF INTCON, 7, a ; ((INTCON) and 0FFh), 7, a = 1
-
-        ; Inicializar variables
-        CLRF secuencia, a ; Secuencia 0 al inicio
-        CLRF contador, a ; Contador en 0
-
-        ; Mostrar primer LED
-        MOVLW 0x01
-        MOVWF LATD, a
-
-; ========================================================================
-; BUCLE PRINCIPAL
-; ========================================================================
-
-BUCLE_PRINCIPAL:
-        ; Llamar función para ejecutar secuencia actual
-        CALL EJECUTAR_SECUENCIA
-
-        ; Hacer delay de 300ms aproximadamente
-        CALL DELAY_300MS
-
-        ; Incrementar contador
-        INCF contador, f, a
-
-        ; Limitar contador según la secuencia
-        CALL LIMITAR_CONTADOR
-
-        ; Volver al bucle
-        BRA BUCLE_PRINCIPAL
-
-; ========================================================================
-; EJECUTAR SECUENCIA ACTUAL
-; ========================================================================
-
-EJECUTAR_SECUENCIA:
-        MOVF secuencia, w, a
-
-        ; Si secuencia = 0
-        BZ EJECUTAR_SEQ0
-
-        ; Si secuencia = 1
-        MOVF secuencia, w, a
-        SUBLW 0x01
-        BZ EJECUTAR_SEQ1
-
-        ; Si secuencia = 2
-        MOVF secuencia, w, a
-        SUBLW 0x02
-        BZ EJECUTAR_SEQ2
-
-        ; Si secuencia = 3
-        MOVF secuencia, w, a
-        SUBLW 0x03
-        BZ EJECUTAR_SEQ3
-
-        RETURN
-
-; ========================================================================
-; SECUENCIA 0: ROTACIÓN A DERECHA
-; LED1 -> LED2 -> LED3 -> LED4 -> LED1...
-; ========================================================================
-
-EJECUTAR_SEQ0:
-        MOVF contador, w, a
-        ANDLW 0x03 ; Limitar a 0-3
-
-        ; Usar como índice para tabla
-        MOVWF temp, a
-
-        ; contador = 0 -> 0x01 (LED1)
-        MOVF temp, w, a
-        BZ SEQ0_LED1
-
-        ; contador = 1 -> 0x02 (LED2)
-        MOVF temp, w, a
-        SUBLW 0x01
-        BZ SEQ0_LED2
-
-        ; contador = 2 -> 0x04 (LED3)
-        MOVF temp, w, a
-        SUBLW 0x02
-        BZ SEQ0_LED3
-
-        ; contador = 3 -> 0x08 (LED4)
-        MOVLW 0x08
-        MOVWF LATD, a
-        RETURN
-
-SEQ0_LED1:
-        MOVLW 0x01
-        MOVWF LATD, a
-        RETURN
-
-SEQ0_LED2:
-        MOVLW 0x02
-        MOVWF LATD, a
-        RETURN
-
-SEQ0_LED3:
-        MOVLW 0x04
-        MOVWF LATD, a
-        RETURN
-
-; ========================================================================
-; SECUENCIA 1: ROTACIÓN A IZQUIERDA
-; LED4 -> LED3 -> LED2 -> LED1 -> LED4...
-; ========================================================================
-
-EJECUTAR_SEQ1:
-        MOVF contador, w, a
-        ANDLW 0x03
-        MOVWF temp, a
-
-        ; contador = 0 -> 0x08 (LED4)
-        MOVF temp, w, a
-        BZ SEQ1_LED4
-
-        ; contador = 1 -> 0x04 (LED3)
-        MOVF temp, w, a
-        SUBLW 0x01
-        BZ SEQ1_LED3
-
-        ; contador = 2 -> 0x02 (LED2)
-        MOVF temp, w, a
-        SUBLW 0x02
-        BZ SEQ1_LED2
-
-        ; contador = 3 -> 0x01 (LED1)
-        MOVLW 0x01
-        MOVWF LATD, a
-        RETURN
-
-SEQ1_LED4:
-        MOVLW 0x08
-        MOVWF LATD, a
-        RETURN
-
-SEQ1_LED3:
-        MOVLW 0x04
-        MOVWF LATD, a
-        RETURN
-
-SEQ1_LED2:
-        MOVLW 0x02
-        MOVWF LATD, a
-        RETURN
-
-; ========================================================================
-; SECUENCIA 2: ACUMULATIVA
-; 1 LED -> 2 LEDs -> 3 LEDs -> 4 LEDs -> regresa...
-; ========================================================================
-
-EJECUTAR_SEQ2:
-        MOVF contador, w, a
-        ANDLW 0x05 ; Limitar a 0-5 (6 pasos)
-        MOVWF temp, a
-
-        ; contador = 0 -> 0x01 (1 LED)
-        MOVF temp, w, a
-        BZ SEQ2_1LED
-
-        ; contador = 1 -> 0x03 (2 LEDs)
-        MOVF temp, w, a
-        SUBLW 0x01
-        BZ SEQ2_2LED
-
-        ; contador = 2 -> 0x07 (3 LEDs)
-        MOVF temp, w, a
-        SUBLW 0x02
-        BZ SEQ2_3LED
-
-        ; contador = 3 -> 0x0F (4 LEDs)
-        MOVF temp, w, a
-        SUBLW 0x03
-        BZ SEQ2_4LED
-
-        ; contador = 4 -> 0x07 (3 LEDs)
-        MOVF temp, w, a
-        SUBLW 0x04
-        BZ SEQ2_3LED
-
-        ; contador = 5 -> 0x03 (2 LEDs)
-        MOVLW 0x03
-        MOVWF LATD, a
-        RETURN
-
-SEQ2_1LED:
-        MOVLW 0x01
-        MOVWF LATD, a
-        RETURN
-
-SEQ2_2LED:
-        MOVLW 0x03
-        MOVWF LATD, a
-        RETURN
-
-SEQ2_3LED:
-        MOVLW 0x07
-        MOVWF LATD, a
-        RETURN
-
-SEQ2_4LED:
-        MOVLW 0x0F
-        MOVWF LATD, a
-        RETURN
-
-; ========================================================================
-; SECUENCIA 3: ALTERNANCIA
-; LEDs 1+4 (esquinas) <-> LEDs 2+3 (centro)
-; ========================================================================
-
-EJECUTAR_SEQ3:
-        MOVF contador, w, a
-        ANDLW 0x01 ; Limitar a 0-1 (2 pasos)
-        MOVWF temp, a
-
-        ; contador = 0 -> 0x09 (LEDs 1 y 4)
-        MOVF temp, w, a
-        BZ SEQ3_ESQUINAS
-
-        ; contador = 1 -> 0x06 (LEDs 2 y 3)
-        MOVLW 0x06
-        MOVWF LATD, a
-        RETURN
-
-SEQ3_ESQUINAS:
-        MOVLW 0x09
-        MOVWF LATD, a
-        RETURN
-
-; ========================================================================
-; LIMITAR CONTADOR SEGÚN SECUENCIA
-; ========================================================================
-
-LIMITAR_CONTADOR:
-        MOVF secuencia, w, a
-
-        ; Secuencia 0: limitar a 0-3
-        BZ LIMITAR_0123
-
-        ; Secuencia 1: limitar a 0-3
-        MOVF secuencia, w, a
-        SUBLW 0x01
-        BZ LIMITAR_0123
-
-        ; Secuencia 2: limitar a 0-5
-        MOVF secuencia, w, a
-        SUBLW 0x02
-        BZ LIMITAR_012345
-
-        ; Secuencia 3: limitar a 0-1
-        BRA LIMITAR_01
-
-LIMITAR_0123:
-        MOVF contador, w, a
-        SUBLW 0x04
-        BNZC FIN_LIMITAR
-        CLRF contador, a
-        RETURN
-
-LIMITAR_012345:
-        MOVF contador, w, a
-        SUBLW 0x06
-        BNZC FIN_LIMITAR
-        CLRF contador, a
-        RETURN
-
-LIMITAR_01:
-        MOVF contador, w, a
-        SUBLW 0x02
-        BNZC FIN_LIMITAR
-        CLRF contador, a
-        RETURN
-
-FIN_LIMITAR:
-        RETURN
-
-; ========================================================================
-; DELAY DE 300ms
-; ========================================================================
-
-DELAY_300MS:
-        MOVLW 0x20 ; Valor para ~300ms
-        MOVWF delay_h, a
-
-DELAY_EXT:
-        MOVLW 0xFF
-        MOVWF delay_l, a
-
-DELAY_INT:
-        DECFSZ delay_l, f, a
-        BRA DELAY_INT
-        DECFSZ delay_h, f, a
-        BRA DELAY_EXT
-
-        RETURN
-
-; ========================================================================
-; INTERRUPCIÓN ((PORTB) and 0FFh), 0, a (BOTÓN)
-; ========================================================================
-
-ISR_BOTON:
-        ; Verificar que es ((PORTB) and 0FFh), 0, a
-        BTFSS INTCON, 1, a
-        RETFIE
-
-        ; Limpiar bandera
-        BCF INTCON, 1, a
-
-        ; Cambiar a siguiente secuencia
-        INCF secuencia, f, a
-
-        ; Si secuencia > 3, reiniciar a 0
-        MOVF secuencia, w, a
-        SUBLW 0x04
-        BNZC CAMBIO_OK
-        CLRF secuencia, a
-
-CAMBIO_OK:
-        ; Reiniciar contador
-        CLRF contador, a
-
-        ; Apagar todos los LEDs
-        CLRF LATD, a
-
-        ; Debounce (evitar rebotes)
-        MOVLW 0x10
-        MOVWF delay_h, a
-
-DEBOUNCE_EXT:
-        MOVLW 0xFF
-        MOVWF delay_l, a
-
-DEBOUNCE_INT:
-        DECFSZ delay_l, f, a
-        BRA DEBOUNCE_INT
-        DECFSZ delay_h, f, a
-        BRA DEBOUNCE_EXT
-
-        ; Salir de interrupción
-        RETFIE
+    MOVF Secuencia,W
+    BZ SEQ0
+
+    MOVLW 1
+    CPFSEQ Secuencia
+    GOTO CHECK2
+    GOTO SEQ1
+
+CHECK2:
+    MOVLW 2
+    CPFSEQ Secuencia
+    GOTO SEQ3
+    GOTO SEQ2
+
+;========================================================
+; SECUENCIAS
+;========================================================
+
+SEQ0:
+    CALL RETARDO_INT
+
+    RLCF LATD,F
+    MOVF LATD,W
+    ANDLW 0x0F
+    BNZ S0_OK
+
+    MOVLW 0x01
+    MOVWF LATD
+S0_OK:
+    GOTO MAIN
+
+SEQ1:
+    CALL RETARDO_INT
+
+    MOVF Direccion,W
+    BZ LEFT
+
+RIGHT:
+    RRCF LATD,F
+    BTFSC LATD,0
+    CLRF Direccion
+    GOTO MAIN
+
+LEFT:
+    RLCF LATD,F
+    BTFSC LATD,3
+    MOVLW 1
+    MOVWF Direccion
+    GOTO MAIN
+
+SEQ2:
+    CALL RETARDO_INT
+
+    INCF LATD,F
+    MOVF LATD,W
+    ANDLW 0x0F
+    MOVWF LATD
+
+    MOVF LATD,W
+    BNZ S2_OK
+    CLRF LATD
+S2_OK:
+    GOTO MAIN
+
+SEQ3:
+    CALL RETARDO_INT
+
+    MOVF LATD,W
+    XORLW 0x09
+    BZ ALT2
+
+ALT1:
+    MOVLW 0x09
+    MOVWF LATD
+    GOTO MAIN
+
+ALT2:
+    MOVLW 0x06
+    MOVWF LATD
+    GOTO MAIN
+
+;========================================================
+; ISR ((PORTB) and 0FFh), 0, a (((PORTB) and 0FFh), 0, a - SECUENCIA)
+;========================================================
+
+ISR:
+
+    BTFSS INTCON,1
+    RETFIE
+
+    CALL DEBOUNCE_DELAY
+
+    BTFSC PORTB,0
+    GOTO CLEAR_INT
+
+    INCF Secuencia,F
+
+    CLRF LATD
+    MOVLW 0x01
+    MOVWF LATD
+
+CLEAR_INT:
+    BCF INTCON,1
+    RETFIE
+
+;========================================================
+; BOTON VELOCIDAD (((PORTB) and 0FFh), 1, a)
+;========================================================
+
+CHECK_VEL:
+
+    BTFSC PORTB,1
+    GOTO RELEASE
+
+    CALL DEBOUNCE_DELAY
+
+    BTFSC PORTB,1
+    RETURN
+
+    MOVF BtnState,W
+    BZ END_CHECK
+
+    CLRF BtnState
+    INCF Velocidad,F
+
+    MOVLW 3
+    CPFSEQ Velocidad
+    GOTO END_CHECK
+
+    CLRF Velocidad
+
+END_CHECK:
+    RETURN
+
+RELEASE:
+    MOVLW 1
+    MOVWF BtnState
+    RETURN
+
+;========================================================
+; RETARDO INTERRUMPIBLE
+;========================================================
+
+RETARDO_INT:
+
+    MOVF Secuencia,W
+    MOVWF SecTmp
+
+    MOVF Velocidad,W
+    BZ LENTA
+
+    MOVLW 1
+    CPFSEQ Velocidad
+    GOTO RAPIDA
+
+MEDIA:
+    MOVLW 4
+    GOTO SETVEL
+
+RAPIDA:
+    MOVLW 1
+    GOTO SETVEL
+
+LENTA:
+    MOVLW 8
+
+SETVEL:
+    MOVWF Delay1
+
+D1:
+    MOVLW 200
+    MOVWF Delay2
+D2:
+    MOVLW 200
+    MOVWF Delay3
+D3:
+
+    CALL CHECK_VEL
+
+    MOVF Secuencia,W
+    CPFSEQ SecTmp
+    RETURN
+
+    DECFSZ Delay3,F
+    GOTO D3
+    DECFSZ Delay2,F
+    GOTO D2
+    DECFSZ Delay1,F
+    GOTO D1
+    RETURN
+
+;========================================================
+; RETARDO ANTIREBOTE
+;========================================================
+
+DEBOUNCE_DELAY:
+
+    MOVLW 100
+    MOVWF Debounce
+DB1:
+    MOVLW 200
+    MOVWF Delay2
+DB2:
+    DECFSZ Delay2,F
+    GOTO DB2
+
+    DECFSZ Debounce,F
+    GOTO DB1
+
+    RETURN
 
 END

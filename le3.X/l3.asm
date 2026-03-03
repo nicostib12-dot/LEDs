@@ -1,176 +1,322 @@
-; ========================================================================
-; PIC18F4550 - SECUENCIA 4 LEDs
-; 
-; ========================================================================
+;========================================================
+; PROYECTO: 3 Velocidades + 4 Secuencias de LEDs
+; Microcontrolador: PIC18F4550
+; Oscilador: Interno 8 MHz
+;
+; RB0 -> Cambia secuencia (INT0 - interrupción externa)
+; RB1 -> Cambia velocidad (por polling con anti-rebote)
+; RD0?RD3 -> LEDs
+;========================================================
 
-#include <xc.inc>
+#include <xc.inc>        ; Incluye definiciones del dispositivo para pic-as
 
-CONFIG FOSC = INTOSCIO_EC
-CONFIG WDT = OFF
-CONFIG LVP = OFF
-CONFIG PBADEN = OFF
-CONFIG MCLRE = OFF
-CONFIG XINST = OFF
-CONFIG PWRT = ON
-CONFIG DEBUG = OFF
+;========================================================
+; BITS DE CONFIGURACIÓN
+;========================================================
 
-; VARIABLES
-PSECT udata_acs
-secuencia:  DS 1
-contador:   DS 1
-velocidad:  DS 1
-btnState:   DS 1
-delay_l:    DS 1
-delay_h:    DS 1
+CONFIG  FOSC = INTOSCIO_EC   ; Oscilador interno, RA6/RA7 como I/O
+CONFIG  WDT = OFF            ; Watchdog Timer desactivado
+CONFIG  LVP = OFF            ; Programación en bajo voltaje desactivada
+CONFIG  PBADEN = OFF         ; PORTB inicia como digital
+CONFIG  MCLRE = OFF          ; Pin MCLR como entrada digital
+CONFIG  XINST = OFF          ; Set extendido de instrucciones desactivado
+CONFIG  PWRT = ON            ; Activa Power-up Timer
 
+;========================================================
+; VARIABLES EN RAM (ACCESS BANK)
+;========================================================
+
+PSECT udata_acs              ; Sección de datos en banco de acceso rápido
+
+Secuencia:   DS 1            ; Guarda la secuencia actual (0?3)
+Velocidad:   DS 1            ; Guarda la velocidad actual (0?2)
+Delay1:      DS 1            ; Contador externo de retardo
+Delay2:      DS 1            ; Contador medio de retardo
+Delay3:      DS 1            ; Contador interno de retardo
+Direccion:   DS 1            ; Dirección para modo Ping-Pong
+SecTmp:      DS 1            ; Copia temporal de Secuencia
+BtnState:    DS 1            ; Controla estado del botón velocidad
+Debounce:    DS 1            ; Contador para anti-rebote
+
+;========================================================
 ; VECTORES
-PSECT resetVec, class=CODE, reloc=2
-ORG 0x00
-GOTO INICIO
+;========================================================
 
-PSECT intVec, class=CODE, reloc=2
-ORG 0x08
-GOTO ISR_BOTON
+PSECT resetVec,class=CODE,reloc=2
+ORG 0x00                     ; Dirección de reset
+GOTO INIT                    ; Salta a rutina de inicialización
 
-PSECT code
+PSECT intVec,class=CODE,reloc=2
+ORG 0x08                     ; Vector de interrupción alta prioridad
+GOTO ISR                     ; Salta a rutina de interrupción
 
-; ========================================================================
-; INICIO
-; ========================================================================
+PSECT code                   ; Sección principal de código
 
-INICIO:
+;========================================================
+; INICIALIZACIÓN DEL SISTEMA
+;========================================================
 
-        MOVLW 0x72
-        MOVWF OSCCON, a
-WAIT_OSC:
-        BTFSS OSCCON, 2, a
-        BRA WAIT_OSC
+INIT:
 
-        MOVLW 0xF0
-        MOVWF TRISD, a
-        CLRF LATD, a
+    MOVLW   0x72             ; Configura OSCCON para 8 MHz
+    MOVWF   OSCCON
 
-        ; RB0 = velocidad
-        BSF TRISB, 0, a
+    MOVLW   0x0F             ; Todos los pines como digitales
+    MOVWF   ADCON1
 
-        ; RB1 = secuencia (INT0)
-        BSF TRISB, 1, a
+    CLRF    Secuencia        ; Inicia en secuencia 0
+    CLRF    Velocidad        ; Inicia en velocidad lenta
+    CLRF    Direccion        ; Dirección inicial = izquierda
+    MOVLW   1
+    MOVWF   BtnState         ; Botón listo para detectar pulsación
 
-        ; INT0 flanco descendente
-        BCF INTCON2, 6, a
-        BCF INTCON, 1, a
-        BSF INTCON, 4, a
-        BSF INTCON, 7, a
+    CLRF    TRISD            ; PORTD como salida (LEDs)
+    CLRF    LATD             ; LEDs apagados
 
-        CLRF secuencia, a
-        CLRF contador, a
-        CLRF velocidad, a
+    MOVLW   0x01             ; Enciende primer LED
+    MOVWF   LATD
 
-        MOVLW 1
-        MOVWF btnState, a
+    BSF     TRISB,0          ; RB0 como entrada (INT0)
+    BSF     TRISB,1          ; RB1 como entrada (velocidad)
 
-        MOVLW 0x01
-        MOVWF LATD, a
+    BCF     INTCON2,6        ; INT0 por flanco descendente
+    BCF     INTCON,1         ; Limpia bandera INT0
+    BSF     INTCON,4         ; Habilita INT0
+    BSF     INTCON,7         ; Habilita interrupciones globales
 
-; ========================================================================
+;========================================================
 ; BUCLE PRINCIPAL
-; ========================================================================
+;========================================================
 
-BUCLE:
+MAIN:
 
-        CALL CHECK_VEL     ; ? NUEVO
+    CALL    CHECK_VEL        ; Verifica si se presionó botón velocidad
 
-        CALL MOSTRAR_LED
-        CALL ESPERAR_300MS
+    MOVF    Secuencia,W      ; Carga número de secuencia
+    ANDLW   0x03             ; Limita a 0?3
+    MOVWF   Secuencia
 
-        INCF contador, f, a
-        BRA BUCLE
+    MOVF    Secuencia,W
+    BZ      SEQ0             ; Si es 0 -> SEQ0
 
-; ========================================================================
-; RUTINA BOTÓN VELOCIDAD (3 NIVELES)
-; ========================================================================
+    MOVLW   1
+    CPFSEQ  Secuencia
+    GOTO    CHECK2
+    GOTO    SEQ1             ; Si es 1 -> SEQ1
+
+CHECK2:
+    MOVLW   2
+    CPFSEQ  Secuencia
+    GOTO    SEQ3
+    GOTO    SEQ2             ; Si es 2 -> SEQ2
+
+;========================================================
+; SECUENCIA 0 - CIRCULAR
+;========================================================
+
+SEQ0:
+    CALL RETARDO_INT         ; Retardo según velocidad
+
+    RLCF LATD,F              ; Rota LEDs a la izquierda
+    MOVF LATD,W
+    ANDLW 0x0F               ; Mantiene solo 4 bits
+    BNZ S0_OK
+
+    MOVLW 0x01               ; Si se apagaron todos reinicia
+    MOVWF LATD
+S0_OK:
+    GOTO MAIN
+
+;========================================================
+; SECUENCIA 1 - PING PONG
+;========================================================
+
+SEQ1:
+    CALL RETARDO_INT
+
+    MOVF Direccion,W
+    BZ LEFT                  ; Si Dirección=0 -> izquierda
+
+RIGHT:
+    RRCF LATD,F              ; Rota derecha
+    BTFSC LATD,0             ; Si llegó al extremo
+    CLRF Direccion           ; Cambia dirección
+    GOTO MAIN
+
+LEFT:
+    RLCF LATD,F              ; Rota izquierda
+    BTFSC LATD,3             ; Si llegó al extremo
+    MOVLW 1
+    MOVWF Direccion
+    GOTO MAIN
+
+;========================================================
+; SECUENCIA 2 - ACUMULATIVA
+;========================================================
+
+SEQ2:
+    CALL RETARDO_INT
+
+    INCF LATD,F              ; Incrementa valor binario
+    MOVF LATD,W
+    ANDLW 0x0F
+    MOVWF LATD
+
+    MOVF LATD,W
+    BNZ S2_OK
+    CLRF LATD                ; Reinicia si pasa de 1111
+S2_OK:
+    GOTO MAIN
+
+;========================================================
+; SECUENCIA 3 - ALTERNADA
+;========================================================
+
+SEQ3:
+    CALL RETARDO_INT
+
+    MOVF LATD,W
+    XORLW 0x09               ; Compara con 1001
+    BZ ALT2
+
+ALT1:
+    MOVLW 0x09               ; 1001
+    MOVWF LATD
+    GOTO MAIN
+
+ALT2:
+    MOVLW 0x06               ; 0110
+    MOVWF LATD
+    GOTO MAIN
+
+;========================================================
+; INTERRUPCIÓN EXTERNA RB0 (CAMBIO SECUENCIA)
+;========================================================
+
+ISR:
+
+    BTFSS INTCON,1           ; Verifica bandera INT0
+    RETFIE
+
+    CALL DEBOUNCE_DELAY      ; Anti-rebote
+
+    BTFSC PORTB,0            ; Si botón liberado salir
+    GOTO CLEAR_INT
+
+    INCF Secuencia,F         ; Cambia secuencia
+
+    CLRF LATD
+    MOVLW 0x01               ; Reinicia LEDs
+    MOVWF LATD
+
+CLEAR_INT:
+    BCF INTCON,1             ; Limpia bandera INT0
+    RETFIE                   ; Regresa de interrupción
+
+;========================================================
+; BOTÓN VELOCIDAD (RB1)
+;========================================================
 
 CHECK_VEL:
 
-        BTFSC PORTB,0      ; Si está en 1 (no presionado)
-        GOTO RELEASE
+    BTFSC PORTB,1            ; Si está en 1 (no presionado)
+    GOTO RELEASE
 
-        MOVF btnState,W
-        BZ END_CHECK       ; Ya estaba presionado
+    CALL DEBOUNCE_DELAY
 
-        CLRF btnState      ; Bloqueo anti-rebote
-        INCF velocidad,f   ; Cambiar nivel
+    BTFSC PORTB,1
+    RETURN
 
-        MOVLW 3
-        CPFSEQ velocidad
-        GOTO END_CHECK
+    MOVF BtnState,W
+    BZ END_CHECK
 
-        CLRF velocidad     ; Si llega a 3 ? vuelve a 0
+    CLRF BtnState
+    INCF Velocidad,F         ; Incrementa velocidad
+
+    MOVLW 3
+    CPFSEQ Velocidad
+    GOTO END_CHECK
+
+    CLRF Velocidad           ; Si llega a 3 reinicia a 0
 
 END_CHECK:
-        RETURN
+    RETURN
 
 RELEASE:
-        MOVLW 1
-        MOVWF btnState
-        RETURN
+    MOVLW 1
+    MOVWF BtnState
+    RETURN
 
-; ========================================================================
-; MOSTRAR LED SEGÚN SECUENCIA
-; (Aquí pegas tus SEQ0, SEQ1, SEQ2, SEQ3 sin cambios)
-; ========================================================================
+;========================================================
+; RETARDO DEPENDIENTE DE VELOCIDAD (INTERRUMPIBLE)
+;========================================================
 
-MOSTRAR_LED:
-        MOVF secuencia, w, a
-        ANDLW 0x03
-        MOVWF secuencia
+RETARDO_INT:
 
-        MOVF secuencia, w, a
-        BZ SEQ0
+    MOVF Secuencia,W
+    MOVWF SecTmp             ; Guarda secuencia actual
 
-        MOVLW 1
-        CPFSEQ secuencia
-        GOTO CHECK2
-        GOTO SEQ1
+    MOVF Velocidad,W
+    BZ LENTA
 
-CHECK2:
-        MOVLW 2
-        CPFSEQ secuencia
-        GOTO SEQ3
-        GOTO SEQ2
+    MOVLW 1
+    CPFSEQ Velocidad
+    GOTO RAPIDA
 
+MEDIA:
+    MOVLW 4
+    GOTO SETVEL
 
+RAPIDA:
+    MOVLW 1
+    GOTO SETVEL
 
-; ========================================================================
-; DELAY (AÚN FIJO)
-; ========================================================================
+LENTA:
+    MOVLW 8
 
-ESPERAR_300MS:
-        MOVLW 0x20
-        MOVWF delay_h, a
+SETVEL:
+    MOVWF Delay1
 
-DELAY_EXT:
-        MOVLW 0xFF
-        MOVWF delay_l, a
+D1:
+    MOVLW 200
+    MOVWF Delay2
+D2:
+    MOVLW 200
+    MOVWF Delay3
+D3:
 
-DELAY_INT:
-        DECFSZ delay_l, f, a
-        BRA DELAY_INT
-        DECFSZ delay_h, f, a
-        BRA DELAY_EXT
-        RETURN
+    CALL CHECK_VEL           ; Permite cambiar velocidad
 
+    MOVF Secuencia,W
+    CPFSEQ SecTmp            ; Si cambia secuencia
+    RETURN                   ; Sale del retardo
 
-ISR_BOTON:
-        BTFSS INTCON, 1, a
-        RETFIE
+    DECFSZ Delay3,F
+    GOTO D3
+    DECFSZ Delay2,F
+    GOTO D2
+    DECFSZ Delay1,F
+    GOTO D1
+    RETURN
 
-        BCF INTCON, 1, a
+;========================================================
+; RETARDO ANTI-REBOTE
+;========================================================
 
-        INCF secuencia, f, a
-        CLRF contador, a
-        CLRF LATD, a
+DEBOUNCE_DELAY:
 
-        RETFIE
+    MOVLW 100
+    MOVWF Debounce
+DB1:
+    MOVLW 200
+    MOVWF Delay2
+DB2:
+    DECFSZ Delay2,F
+    GOTO DB2
+
+    DECFSZ Debounce,F
+    GOTO DB1
+
+    RETURN
 
 END
